@@ -18,6 +18,10 @@ import java.util.Hashtable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import utils.PropertyHandler;
+import java.lang.String;
+import java.lang.Integer;
+import java.io.BufferedReader;
+import java.io.FileReader;
 
 /**
  * Class [Satellite] Instances of this class represent computing nodes that execute jobs by
@@ -34,35 +38,54 @@ public class Satellite extends Thread {
     private Hashtable toolsCache = null;
 
     public Satellite(String satellitePropertiesFile, String classLoaderPropertiesFile, String serverPropertiesFile) {
-
+		try{
         // read the configuration information from the file name passed in
         // ---------------------------------------------------------------
         // ...
+			BufferedReader satelliteFile = new BufferedReader(new FileReader(satellitePropertiesFile));
+			BufferedReader classLoaderFile = new BufferedReader(new FileReader(classLoaderPropertiesFile));
+			BufferedReader serverFile = new BufferedReader(new FileReader(serverPropertiesFile));
         
-        
+			satelliteFile.readLine();
+			satelliteInfo.setName(satelliteFile.readLine().split("\t")[1]);
+			satelliteInfo.setPort(Integer.parseInt(satelliteFile.readLine().split("\t")[1]));
         // create a socket info object that will be sent to the server
-        // ...
+        // ...(this should be done in the run function I think)
         
         
         // get connectivity information of the server
         // ...
-        
+			serverInfo.setHost(serverFile.readLine().split("=")[1].trim());
+			serverInfo.setPort(Integer.parseInt(serverFile.readLine().split("=")[1].trim()));
         
         // create class loader
         // -------------------
         // ...
+			classLoaderFile.readLine();
+			String host = classLoaderFile.readLine().split("\t")[1];
+			classLoaderFile.readLine();
+			classLoaderFile.readLine();
+			int port = Integer.parseInt(classLoaderFile.readLine().split("\t")[1]);
+			classLoader = new HTTPClassLoader(host, port);
 
         // read class loader config
         // ...
-        
+			classLoaderFile.readLine();
+			classLoaderFile.readLine();
+			classLoader.classRootDir = classLoaderFile.readLine().split("\t")[1];
         
         // get class loader connectivity properties and create class loader
-        // ...
+        // ...(already done?)
         
         
         // create tools cache
         // -------------------
         // ...
+			toolsCache = new Hashtable();
+		
+		}catch(IOException e){
+			System.out.println("Error: " + e);
+		}
         
     }
 
