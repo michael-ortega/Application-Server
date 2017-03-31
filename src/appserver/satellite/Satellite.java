@@ -100,6 +100,7 @@ public class Satellite extends Thread {
         // create server socket
         // ---------------------------------------------------------------
         // ...
+		serverport = serverInfo.getPort();
         
         
         // start taking job requests in a server loop
