@@ -1,8 +1,10 @@
-# Compile (In "Application-Server" Directory)
+### Compile (In "Application-Server" Directory)
 javac -d bin -cp bin -s src src/\*\*/\*.java src/appserver/\*\*/\*.java
-# Run Satellite (In "bin" Directory)
+
+Make sure to reorganize files into the correct directories in "docRoot"
+### Run WebServer (In "docRoot/dynNet" Directory)
+java web.SimpleWebServer ../../config/WebServer.properties
+### Run Satellite (In "docRoot" Directory)
 java appserver.satellite.Satellite ../config/Satellite.Earth.properties ../config/WebServer.properties ../config/Server.properties
-# Run WebServer (In "bin" Directory)
-java web.SimpleWebServer ../config/WebServer.properties
-# Run Client (In "bin" Directory)
+### Run Client (In "docRoot" Directory)
 java appserver.client.PlusOneClient ../config/Server.properties
