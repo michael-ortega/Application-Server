@@ -150,7 +150,7 @@ public class Satellite extends Thread {
 				switch (message.getType()) {
 					case JOB_REQUEST:
 						Tool tool = getToolObject(((Job) message.getContent()).getToolName());
-						writeToNet.writeObject(tool);
+						writeToNet.writeObject(tool.go(((Job) message.getContent()).getParameters()));
 						break;
 
 					default:
@@ -179,8 +179,8 @@ public class Satellite extends Thread {
         Tool toolObject = null;
 
         // ...
-	//If not in hash table, ask HTTPClassLoader to load class
-	if ((toolObject = (Tool) toolsCache.get(toolClassString)) == null) {
+		//If not in hash table, ask HTTPClassLoader to load class
+		if ((toolObject = (Tool) toolsCache.get(toolClassString)) == null) {
             System.out.println("\nTool's Class: " + toolClassString);
             Class toolClass = classLoader.findClass(toolClassString);
             toolObject = (Tool) toolClass.newInstance();
