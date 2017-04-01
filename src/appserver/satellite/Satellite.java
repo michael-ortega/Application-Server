@@ -138,14 +138,18 @@ public class Satellite extends Thread {
         public void run() {
             // setting up object streams
             // ...
+		readFromNet = new ObjectInputStream(jobRequest.getInputStream());
+		writeToNet = new ObjectOutputStream(jobRequest.getOutputStream());
             
             // reading message
             // ...
+		message = readFromNet.readObject();
             
             // processing message
             switch (message.getType()) {
                 case JOB_REQUEST:
-                    // ...
+                    Tool tool = getToolObject(message.getContent().getToolName());
+		    writeToNet.writeObject(tool);
                     break;
 
                 default:
@@ -163,7 +167,15 @@ public class Satellite extends Thread {
         Tool toolObject = null;
 
         // ...
-		//If not in hash table, ask HTTPClassLoader to load class
+	//If not in hash table, ask HTTPClassLoader to load class
+	if ((toolObject = (Tool) toolsCache.get(toolClassString)) == null) {
+            System.out.println("\nTool's Class: " + toolClassString);
+            Class toolClass = classLoader.findClass(toolClassString);
+            toolObject = (Tool) toolClass.newInstance();
+            toolsCache.put(toolClassString, toolObject);
+        } else {
+            System.out.println("Tool: \"" + toolClassString + "\" already in Cache");
+        }
         
         return toolObject;
     }
