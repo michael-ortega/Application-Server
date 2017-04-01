@@ -138,23 +138,35 @@ public class Satellite extends Thread {
         public void run() {
             // setting up object streams
             // ...
-		readFromNet = new ObjectInputStream(jobRequest.getInputStream());
-		writeToNet = new ObjectOutputStream(jobRequest.getOutputStream());
+			try{
+				readFromNet = new ObjectInputStream(jobRequest.getInputStream());
+				writeToNet = new ObjectOutputStream(jobRequest.getOutputStream());
             
-            // reading message
-            // ...
-		message = readFromNet.readObject();
-            
-            // processing message
-            switch (message.getType()) {
-                case JOB_REQUEST:
-                    Tool tool = getToolObject(message.getContent().getToolName());
-		    writeToNet.writeObject(tool);
-                    break;
+				// reading message
+				// ...
+				message = (Message) readFromNet.readObject();
+				
+				// processing message
+				switch (message.getType()) {
+					case JOB_REQUEST:
+						Tool tool = getToolObject(((Job) message.getContent()).getToolName());
+						writeToNet.writeObject(tool);
+						break;
 
-                default:
-                    System.err.println("[SatelliteThread.run] Warning: Message type not implemented");
-            }
+					default:
+						System.err.println("[SatelliteThread.run] Warning: Message type not implemented");
+				}
+			}catch(IOException e){
+				System.out.println("Error: " + e);
+			}catch(UnknownToolException e){
+				System.out.println("Tool could not be found: " + e);
+			}catch(ClassNotFoundException e){
+				System.out.println("Class not found: " + e);
+			}catch(InstantiationException e){
+				System.out.println("There was an instantiation exception: " + e);
+			}catch(IllegalAccessException e){
+				System.out.println("Illegal access: " + e);
+			}
         }
     }
 
