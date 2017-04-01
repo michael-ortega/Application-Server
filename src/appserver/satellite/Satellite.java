@@ -82,7 +82,12 @@ public class Satellite extends Thread {
         // -------------------
         // ...
 			toolsCache = new Hashtable();
-		
+			
+			satelliteFile.close();
+			classLoaderFile.close();
+			serverFile.close();
+			
+			
 		}catch(IOException e){
 			System.out.println("Error: " + e);
 		}
@@ -100,12 +105,19 @@ public class Satellite extends Thread {
         // create server socket
         // ---------------------------------------------------------------
         // ...
-		serverport = serverInfo.getPort();
-        
-        
+		try{
+			ServerSocket serverSocket = new ServerSocket(serverInfo.getPort());
+		
         // start taking job requests in a server loop
         // ---------------------------------------------------------------
         // ...
+			while(true){
+				Socket clientSocket = serverSocket.accept();
+				new SatelliteThread(clientSocket, this).start();
+			}
+		}catch(IOException e){
+			System.out.println("Error: " + e);
+		}
     }
 
     // inner helper class that is instanciated in above server loop and processes job requests
