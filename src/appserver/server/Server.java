@@ -11,6 +11,11 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Properties;
 import utils.PropertyHandler;
+import java.lang.String;
+import java.lang.Integer;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import appserver.job.Job;
 
 /**
  *
@@ -24,21 +29,37 @@ public class Server {
     static ServerSocket serverSocket = null;
 
     public Server(String serverPropertiesFile) {
-
-        // create satellite and load managers
-        // ...
-        
-        // read server port from server properties file
-        int serverPort = 0;
-        // ...
-        
-        // create server socket
-        // ...
+		try{
+			// create satellite and load managers
+			// ...
+			satelliteManager = new SatelliteManager();
+			loadManager = new LoadManager();
+			
+			// read server port from server properties file
+			int serverPort = 0;
+			BufferedReader serverFile = new BufferedReader(new FileReader(serverPropertiesFile));
+			serverFile.readLine();
+			serverPort = Integer.parseInt(serverFile.readLine().split("=")[1].trim());
+			
+			// create server socket
+			// ...
+			serverSocket = new ServerSocket(serverPort);
+		}catch(IOException e){
+			System.out.println(e);
+		}
     }
 
     public void run() {
     // start serving clients in server loop ...
     // ...
+		while(true){
+			try{
+				Socket clientSocket = serverSocket.accept();
+				new ServerThread(clientSocket);
+			}catch(IOException e){
+				System.out.println("Failed to establish connection: " + e);
+			}
+		}
     }
 
     // objects of this helper class communicate with clients
@@ -54,10 +75,15 @@ public class Server {
         }
 
         @Override
-        public void run() {
+        public void run(){
             // setting up object streams
             // ...
-            
+			try{
+				readFromNet = new ObjectInputStream(client.getInputStream());
+				writeToNet = new ObjectOutputStream(client.getOutputStream());
+            }catch(IOException e){
+				System.out.println("Failed to create object streams: " + e);
+			}
             
             // reading message
             try {
@@ -74,15 +100,18 @@ public class Server {
                 case REGISTER_SATELLITE:
                     // read satellite info
                     // ...
-                    
+					String satelliteNameCurrent = ((Job) message.getContent()).getToolName();
+                    satelliteInfo = (ConnectivityInfo) ((Job) message.getContent()).getParameters();
                     // register satellite
                     synchronized (Server.satelliteManager) {
                         // ...
+						satelliteManager.registerSatellite(satelliteInfo);
                     }
 
                     // add satellite to loadManager
                     synchronized (Server.loadManager) {
                         // ...
+						loadManager.satelliteAdded(satelliteNameCurrent);
                     }
 
                     break;

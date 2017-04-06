@@ -89,12 +89,16 @@ public class Satellite extends Thread {
 
     @Override
     public void run() {
-
-        // register this satellite with the SatelliteManager on the server
-        // ---------------------------------------------------------------
-        // ...
-        
 		try{
+			// register this satellite with the SatelliteManager on the server
+			// ---------------------------------------------------------------
+			// ...
+			Socket server = new Socket(serverInfo.getHost(), serverInfo.getPort());
+			Job job = new Job(satelliteInfo.getName(), satelliteInfo);
+			Message message = new Message(REGISTER_SATELLITE, job);
+			ObjectOutputStream writeToNet = new ObjectOutputStream(server.getOutputStream());
+			writeToNet.writeObject(message);
+        
 			//Create satellite server socket
 			ServerSocket serverSocket = new ServerSocket(serverInfo.getPort());
 			//Display satellite info to user
