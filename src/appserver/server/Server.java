@@ -121,22 +121,38 @@ public class Server {
 
                     String satelliteName = null;
                     synchronized (Server.loadManager) {
-                        // get next satellite from load manager
-                        // ...
-                        
-                        // get connectivity info for next satellite from satellite manager
-                        // ...
+						try{
+							// get next satellite from load manager
+							// ...
+							String ourSatellite = loadManager.nextSatellite();
+							// get connectivity info for next satellite from satellite manager
+							// ...
+							satelliteInfo = satelliteManager.getSatelliteForName(ourSatellite);
+						}catch(Exception e){
+							System.out.println("Error: " + e);
+						}
                     }
-
-                    Socket satellite = null;
-                    // connect to satellite
-                    // ...
-
-                    // open object streams,
-                    // forward message (as is) to satellite,
-                    // receive result from satellite and
-                    // write result back to client
-                    // ...
+					
+					try{
+						Socket satellite = null;
+						// connect to satellite
+						// ...
+						satellite = new Socket(satelliteInfo.getHost(), satelliteInfo.getPort());
+						// open object streams,
+						ObjectInputStream readFromSat = new ObjectInputStream(satellite.getInputStream());
+						ObjectOutputStream writeToSat = new ObjectOutputStream(satellite.getOutputStream());
+						// forward message (as is) to satellite,
+						writeToSat.writeObject(message);
+						// receive result from satellite and
+						Integer result = (Integer) readFromSat.readObject();
+						// write result back to client
+						// ...
+						writeToNet.writeObject(result);
+					}catch(IOException e){
+						System.out.println("Error: " + e);
+					}catch(ClassNotFoundException e){
+						System.out.println("Class not found: " + e);
+					}
 
                     break;
 
