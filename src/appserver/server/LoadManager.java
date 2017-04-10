@@ -46,8 +46,9 @@ public class LoadManager {
         synchronized (satellites) {
             // implement policy that returns the satellite name according to a round robin methodology
             // ...
+			String satelliteName = (String) satellites.get(0);
+			satellites.add(satelliteName);
+			return satelliteName;
         }
-
-        return (String) satellites.get(lastSatelliteIndex);
     }
 }
