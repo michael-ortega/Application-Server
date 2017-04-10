@@ -23,6 +23,7 @@ public class LoadManager {
     public void satelliteAdded(String satelliteName) {
         // add satellite
         // ...
+		satellites.add(satelliteName);
     }
 
     /*
