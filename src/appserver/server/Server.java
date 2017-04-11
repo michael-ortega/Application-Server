@@ -55,7 +55,7 @@ public class Server {
 		while(true){
 			try{
 				Socket clientSocket = serverSocket.accept();
-				new ServerThread(clientSocket);
+				(new ServerThread(clientSocket)).start();
 			}catch(IOException e){
 				System.out.println("Failed to establish connection: " + e);
 			}
@@ -84,7 +84,6 @@ public class Server {
             }catch(IOException e){
 				System.out.println("Failed to create object streams: " + e);
 			}
-            
             // reading message
             try {
                 message = (Message) readFromNet.readObject();
@@ -93,15 +92,14 @@ public class Server {
                 e.printStackTrace();
                 System.exit(1);
             }
-
             // processing message
             ConnectivityInfo satelliteInfo = null;
             switch (message.getType()) {
                 case REGISTER_SATELLITE:
+					System.err.println("\n[ServerThread.run] Received satellite request");
                     // read satellite info
                     // ...
-					String satelliteNameCurrent = ((Job) message.getContent()).getToolName();
-                    satelliteInfo = (ConnectivityInfo) ((Job) message.getContent()).getParameters();
+                    satelliteInfo = (ConnectivityInfo) message.getContent();
                     // register satellite
                     synchronized (Server.satelliteManager) {
                         // ...
@@ -111,16 +109,15 @@ public class Server {
                     // add satellite to loadManager
                     synchronized (Server.loadManager) {
                         // ...
-						loadManager.satelliteAdded(satelliteNameCurrent);
+						loadManager.satelliteAdded(satelliteInfo.getName());
                     }
-
                     break;
 
                 case JOB_REQUEST:
-                    System.err.println("\n[ServerThread.run] Received job request");
+					System.err.println("\n[ServerThread.run] Received job request");
 
                     String satelliteName = null;
-                    synchronized (Server.loadManager) {
+					synchronized (Server.loadManager) {
 						try{
 							// get next satellite from load manager
 							// ...
@@ -132,16 +129,17 @@ public class Server {
 							System.out.println("Error: " + e);
 						}
                     }
-					
 					try{
 						Socket satellite = null;
 						// connect to satellite
 						// ...
 						satellite = new Socket(satelliteInfo.getHost(), satelliteInfo.getPort());
+						
 						// open object streams,
-						ObjectInputStream readFromSat = new ObjectInputStream(satellite.getInputStream());
 						ObjectOutputStream writeToSat = new ObjectOutputStream(satellite.getOutputStream());
+						ObjectInputStream readFromSat = new ObjectInputStream(satellite.getInputStream());
 						// forward message (as is) to satellite,
+						
 						writeToSat.writeObject(message);
 						// receive result from satellite and
 						Integer result = (Integer) readFromSat.readObject();

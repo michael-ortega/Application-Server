@@ -180,7 +180,7 @@ public class Satellite extends Thread {
             try {
                 readFromNet = new ObjectInputStream(jobRequest.getInputStream());
                 writeToNet = new ObjectOutputStream(jobRequest.getOutputStream());
-            } catch (IOException ex) {
+			} catch (IOException ex) {
                 System.err.println("[SatelliteThread.run] Failed to open object streams");
                 ex.printStackTrace();
                 System.exit(1);

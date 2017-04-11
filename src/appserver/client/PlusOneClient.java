@@ -38,7 +38,7 @@ public class PlusOneClient implements MessageTypes{
         try { 
             // connect to application server
             Socket server = new Socket(host, port);
-            
+			
             // hard-coded string of class, aka tool name ... plus one argument
             String classString = "appserver.job.impl.PlusOne";
             Integer number = new Integer(42);
