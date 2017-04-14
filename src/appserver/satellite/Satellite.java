@@ -220,6 +220,8 @@ public class Satellite extends Thread {
 
                     // do job and return result
                     Object result = tool.go(arguments);
+					//Print result of Fibonacci sequence
+					System.out.println("Fib result of " + ((Integer) arguments).intValue() + ": " + ((Integer) result).intValue());
                     try {
                         writeToNet.writeObject(result);
                     } catch (IOException ex) {
