@@ -29,37 +29,35 @@ public class Server {
     static ServerSocket serverSocket = null;
 
     public Server(String serverPropertiesFile) {
-		try{
-			// create satellite and load managers
-			// ...
-			satelliteManager = new SatelliteManager();
-			loadManager = new LoadManager();
+	try {
+	    // create satellite and load managers
+	    satelliteManager = new SatelliteManager();
+	    loadManager = new LoadManager();
 			
-			// read server port from server properties file
-			int serverPort = 0;
-			BufferedReader serverFile = new BufferedReader(new FileReader(serverPropertiesFile));
-			serverFile.readLine();
-			serverPort = Integer.parseInt(serverFile.readLine().split("=")[1].trim());
-			
-			// create server socket
-			// ...
-			serverSocket = new ServerSocket(serverPort);
-		}catch(IOException e){
-			System.out.println(e);
-		}
+	    // read server port from server properties file
+	    int serverPort = 0;
+	    BufferedReader serverFile = new BufferedReader(new FileReader(serverPropertiesFile));
+	    serverFile.readLine();
+	    serverPort = Integer.parseInt(serverFile.readLine().split("=")[1].trim());
+		
+	    // create server socket
+	    serverSocket = new ServerSocket(serverPort);
+
+	} catch(IOException e) {
+	    System.out.println(e);
+	}
     }
 
     public void run() {
     // start serving clients in server loop ...
-    // ...
-		while(true){
-			try{
-				Socket clientSocket = serverSocket.accept();
-				(new ServerThread(clientSocket)).start();
-			}catch(IOException e){
-				System.out.println("Failed to establish connection: " + e);
-			}
-		}
+	while(true) {
+	    try {
+		Socket clientSocket = serverSocket.accept();
+		(new ServerThread(clientSocket)).start();
+	    } catch(IOException e) {
+		System.out.println("Failed to establish connection: " + e);
+	    }
+	}
     }
 
     // objects of this helper class communicate with clients
@@ -75,15 +73,14 @@ public class Server {
         }
 
         @Override
-        public void run(){
+        public void run() {
             // setting up object streams
-            // ...
-			try{
-				readFromNet = new ObjectInputStream(client.getInputStream());
-				writeToNet = new ObjectOutputStream(client.getOutputStream());
-            }catch(IOException e){
-				System.out.println("Failed to create object streams: " + e);
-			}
+	    try {
+		readFromNet = new ObjectInputStream(client.getInputStream());
+		writeToNet = new ObjectOutputStream(client.getOutputStream());
+            } catch(IOException e) {
+	        System.out.println("Failed to create object streams: " + e);
+	    }
             // reading message
             try {
                 message = (Message) readFromNet.readObject();
@@ -96,64 +93,54 @@ public class Server {
             ConnectivityInfo satelliteInfo = null;
             switch (message.getType()) {
                 case REGISTER_SATELLITE:
-					System.err.println("\n[ServerThread.run] Received satellite request");
+		    System.err.println("\n[ServerThread.run] Received satellite request");
                     // read satellite info
-                    // ...
                     satelliteInfo = (ConnectivityInfo) message.getContent();
                     // register satellite
                     synchronized (Server.satelliteManager) {
-                        // ...
-						satelliteManager.registerSatellite(satelliteInfo);
+			satelliteManager.registerSatellite(satelliteInfo);
                     }
 
                     // add satellite to loadManager
                     synchronized (Server.loadManager) {
-                        // ...
-						loadManager.satelliteAdded(satelliteInfo.getName());
+			loadManager.satelliteAdded(satelliteInfo.getName());
                     }
                     break;
 
                 case JOB_REQUEST:
-					System.err.println("\n[ServerThread.run] Received job request");
+		    System.err.println("\n[ServerThread.run] Received job request");
 
                     String satelliteName = null;
-					synchronized (Server.loadManager) {
-						try{
-							// get next satellite from load manager
-							// ...
-							String ourSatellite = loadManager.nextSatellite();
-							// get connectivity info for next satellite from satellite manager
-							// ...
-							satelliteInfo = satelliteManager.getSatelliteForName(ourSatellite);
-						}catch(Exception e){
-							System.out.println("Error: " + e);
-						}
+		    synchronized (Server.loadManager) {
+		        try {
+		            // get next satellite from load manager
+			    String ourSatellite = loadManager.nextSatellite();
+			    // get connectivity info for next satellite from satellite manager
+			    satelliteInfo = satelliteManager.getSatelliteForName(ourSatellite);
+		        } catch(Exception e) {
+			    System.out.println("Error: " + e);
+		        }
                     }
-					try{
-						Socket satellite = null;
-						// connect to satellite
-						// ...
-						satellite = new Socket(satelliteInfo.getHost(), satelliteInfo.getPort());
+		    try {
+			Socket satellite = null;
+			// connect to satellite
+			satellite = new Socket(satelliteInfo.getHost(), satelliteInfo.getPort());
 						
-						// open object streams,
-						ObjectOutputStream writeToSat = new ObjectOutputStream(satellite.getOutputStream());
-						ObjectInputStream readFromSat = new ObjectInputStream(satellite.getInputStream());
-						// forward message (as is) to satellite,
-						
-						writeToSat.writeObject(message);
-						// receive result from satellite and
-						Integer result = (Integer) readFromSat.readObject();
-						// write result back to client
-						// ...
-						writeToNet.writeObject(result);
-					}catch(IOException e){
-						System.out.println("Error: " + e);
-					}catch(ClassNotFoundException e){
-						System.out.println("Class not found: " + e);
-					}
-
+			// open object streams
+			ObjectOutputStream writeToSat = new ObjectOutputStream(satellite.getOutputStream());
+			ObjectInputStream readFromSat = new ObjectInputStream(satellite.getInputStream());
+			// forward message (as is) to satellite
+			writeToSat.writeObject(message);
+			// receive result from satellite
+			Integer result = (Integer) readFromSat.readObject();
+			// write result back to client
+			writeToNet.writeObject(result);
+		    } catch(IOException e) {
+			System.out.println("Error: " + e);
+		    } catch(ClassNotFoundException e) {
+			System.out.println("Class not found: " + e);
+		    }
                     break;
-
                 default:
                     System.err.println("[ServerThread.run] Warning: Message type not implemented");
             }
